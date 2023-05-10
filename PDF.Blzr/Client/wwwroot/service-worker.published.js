@@ -43,6 +43,12 @@ async function onActivate(event) {
     await Promise.all(cacheKeys
         .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
         .map(key => caches.delete(key)));
+
+    event.waitUntil(self.clients.claim());
+
+    // Send a message to all clients to refresh the page.
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => client.postMessage('Service worker has been activated. Refreshing...'));
 }
 
 async function onFetch(event) {

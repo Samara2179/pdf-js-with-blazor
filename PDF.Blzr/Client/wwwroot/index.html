@@ -32,7 +32,33 @@
 </div>
 <!-- Use the version number from assetsManifest as the Blazor WebAssembly JS version -->
 <script src="_framework/blazor.webassembly.js?v=@(self.assetsManifest.version)"></script>
-<script>navigator.serviceWorker.register('service-worker.js');</script>
+<script>navigator.serviceWorker.register('service-worker.js').then(registration => {
+        // When a new service worker becomes active, refresh the page.
+        registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+
+            newWorker.onstatechange = function () {
+                if (newWorker.state == 'activated') {
+                    if (navigator.serviceWorker.controller) {
+                        // At this point, the old content will have been purged and the fresh content will have been added to the cache.
+                        // It's the perfect time to display a "New content is available; please refresh." message in the page's interface.
+                        console.log('New content is available; please refresh.');
+                    } else {
+                        // At this point, everything has been precached.
+                        // It's the perfect time to display a "Content is cached for offline use." message.
+                        console.log('Content is cached for offline use.');
+                    }
+                }
+            };
+        });
+
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (refreshing) return;
+            window.location.reload();
+            refreshing = true;
+        });
+    });</script>
 <script>
     </script>
 </body>
